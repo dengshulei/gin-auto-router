@@ -1,5 +1,5 @@
-module ginAutoRouter
+module github.com/dengshulei/gin-auto-router
 
-go 1.16
+go 1.15
 
 require github.com/gin-gonic/gin v1.7.7
