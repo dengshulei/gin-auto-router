@@ -10,12 +10,15 @@
 # 简要描述
 #### 开发人员只需要编辑controller相关文件Article.go，就能实现轻松的访问“/Article/List”，类似于Nginx的路由方式
 
+
+
+
 # 使用方法一
-#### 示例代码[demo1](https://github.com/dengshulei/gin-auto-router/examples/demo1)
+#### 示例代码[demo1](https://github.com/dengshulei/gin-auto-router/tree/master/examples/demo1)
 
 #### 利用gin基本的路由对象，自动生成访问路由，主要代码如下：
 
-## 入口主文件
+### 入口主文件
 ```sh
 $ cat main.go
 ```
@@ -31,7 +34,7 @@ func main() {
 }
 ```
 
-## 自动生成路由的主文件
+### 自动生成路由的主文件
 ```sh
 # router下的文件InitRouter.go
 $ cat InitRouter.go
@@ -53,7 +56,7 @@ func InitRouter() *gin.Engine  {
 }
 ```
 
-## 控制器文件
+### 控制器文件
 ```sh
 # controller下的文件Article.go
 $ cat Article.go
@@ -93,14 +96,14 @@ func (api *Article) Test(c *gin.Context) {
 
 # 使用方法二：
 
-#### 示例代码[demo2](https://github.com/dengshulei/gin-auto-router/examples/demo2)
+#### 示例代码[demo2](https://github.com/dengshulei/gin-auto-router/tree/master/examples/demo2)
 
 #### 利用gin的分组路由Group实现路由分组，并对指定的分组使用登录验证等中间件。
 #### 实现的效果是：登录接口“/auth”可以直接访问，只有登录成功的才可以访问“/v1/Article/List”
 
-#### 大多的文件都是与方法一类似，只有路由相关文件有细微的区别，详细的情况请查看示例代码 [demo2](https://github.com/dengshulei/gin-auto-router/examples/demo2)
+#### 大多的文件都是与方法一类似，只有路由相关文件有细微的区别，详细的情况请查看示例代码 [demo2](https://github.com/dengshulei/gin-auto-router/tree/master/examples/demo2)
 
-## 路由相关文件
+### 路由相关文件
 ```sh
 $ cat InitRouter.go
 ```
