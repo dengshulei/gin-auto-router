@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 )
+
 type Route struct {
 	Method reflect.Value
 	Args   []reflect.Type
@@ -11,11 +12,11 @@ type Route struct {
 
 var Routes = make(map[string]map[string]Route)
 
-//注册路由方法
+// Register 注册路由方法
 func Register(controller interface{}) bool {
 	v := reflect.ValueOf(controller)
 	//非控制器或无方法则直接返回
-	if v.NumMethod() 	== 0 {
+	if v.NumMethod() == 0 {
 		return false
 	}
 
@@ -23,11 +24,11 @@ func Register(controller interface{}) bool {
 	tmp := reflect.TypeOf(controller).String()
 	module := tmp
 	if strings.Contains(tmp, ".") {
-		module = tmp[strings.Index(tmp, ".") + 1:]
+		module = tmp[strings.Index(tmp, ".")+1:]
 	}
 
 	//遍历方法
-	for i:= 0; i < v.NumMethod(); i++ {
+	for i := 0; i < v.NumMethod(); i++ {
 		method := v.Method(i)
 		action := v.Type().Method(i).Name
 
@@ -40,7 +41,7 @@ func Register(controller interface{}) bool {
 		if Routes[module] == nil {
 			Routes[module] = make(map[string]Route)
 		}
-		Routes[module][action] = Route{method,params}
+		Routes[module][action] = Route{method, params}
 	}
 	return true
 }
