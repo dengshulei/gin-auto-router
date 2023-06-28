@@ -10,12 +10,12 @@ func init() {
 	ginAutoRouter.Register(&Article{})
 }
 
-type Article struct {}
+type Article struct{}
 
 func (api *Article) List(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 1,
-		"msg": "ok",
+		"msg":  "ok",
 		"data": "Article:List",
 	})
 }
@@ -23,7 +23,15 @@ func (api *Article) List(c *gin.Context) {
 func (api *Article) Test(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 1,
-		"msg": "ok",
+		"msg":  "ok",
+		"data": "Article:Test",
+	})
+}
+
+func (api *Article) TestGet(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"code": 1,
+		"msg":  "ok",
 		"data": "Article:Test",
 	})
 }

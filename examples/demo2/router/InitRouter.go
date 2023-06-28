@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter() *gin.Engine  {
+func InitRouter() *gin.Engine {
 	//初始化路由
 	r := gin.Default()
 	//开启v1分组
@@ -15,7 +15,7 @@ func InitRouter() *gin.Engine  {
 	//加载并使用登录验证中间件
 	v1Route.Use(jwt.JWT())
 	{
-		//绑定Group路由，访问路径：/v1/Article/List
+		//绑定Group路由，访问路径：/v1/article/list
 		ginAutoRouter.BindGroup(v1Route)
 	}
 

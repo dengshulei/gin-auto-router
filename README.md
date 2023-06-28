@@ -1,15 +1,21 @@
-# 项目目标
-#### 1. 路由自动注册，不用每次都手动添加
-#### 2. 将精力放到具体业务逻辑开发上来
-#### 3. 降低新手的入门难度
+# Go语言的Gin框架自动路由组件
+# 1 项目目标
+### 1.1 Gin的路由自动注册，不用每次都手动添加
+### 1.2 将精力放到具体业务逻辑开发上来
+### 1.3 降低新手的入门难度
 
-# 注意事项
-#### 暂时只实现了post请求方式，这也是在生产中推荐使用的方式，其它方式可以参考代码自己实现，比较简单。
+# 2 特别说明
+### 2.1 从 v1.0.0 开始，支持所有的 RESTful API 请求类型
+### 2.2 从 v1.0.0 开始，请求 URI 自动为小写下划线方式
 
-
-# 简要描述
-#### 开发人员只需要编辑controller相关文件Article.go，就能实现轻松的访问“/Article/List”，类似于Nginx的路由方式
-
+# 3 简要描述
+### 3.1 假定控制器目录为 controller，具体可参见：示例代码[demo1](/examples/demo1)
+### 3.2 假定控制器文件为 Article.go，方法名为 List
+### 3.3 前端使用 post 方式访问“/article/list”，即可访问到上述代码
+### 3.4 从 v1.0.0 开始，控制器文件 Article.go 下的方法名为 TestGet 则必须用 get 方式请求“/article/list”
+### 3.2 从 v1.0.0 开始，控制器文件 Article.go 下的方法名为 TestGet 则必须用get方式请求“/article/list”
+### 3.2 从 v1.0.0 开始，控制器文件 Article.go 下的方法名为 TestGet 则必须用get方式请求“/article/list”
+### 3.2 从 v1.0.0 开始，控制器文件 Article.go 下的方法名为 TestGet 则必须用get方式请求“/article/list”
 
 
 
@@ -50,7 +56,7 @@ import (
 func InitRouter() *gin.Engine  {
 	//初始化路由
 	r := gin.Default()
-	//绑定基本路由，访问路径：/Article/List
+	//绑定基本路由，访问路径：/article/list
 	ginAutoRouter.Bind(r)
 	return r
 }
@@ -92,6 +98,13 @@ func (api *Article) Test(c *gin.Context) {
 		"data": "Article:Test",
 	})
 }
+func (api *Article) TestGet(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"code": 1,
+		"msg": "ok",
+		"data": "Article:Test",
+	})
+}
 ```
 
 # 使用方法二：
@@ -126,7 +139,7 @@ func InitRouter() *gin.Engine  {
 	//加载并使用登录验证中间件
 	v1Route.Use(jwt.JWT())
 	{
-		//绑定Group路由，访问路径：/v1/Article/List
+		//绑定Group路由，访问路径：/v1/article/list
 		ginAutoRouter.BindGroup(v1Route)
 	}
 
