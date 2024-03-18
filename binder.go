@@ -2,9 +2,7 @@ package gin_auto_router
 
 import (
 	"github.com/gin-gonic/gin"
-	"reflect"
 	"strings"
-	"unicode"
 )
 
 // Bind 绑定基本路由，外部可以直接使用
@@ -37,7 +35,18 @@ func baseBind(r *gin.RouterGroup, class string, action string, handler gin.Handl
 	// 分割 action字符串，取出最后一段，用来匹配请求类型，形如：list_get , info_push，则取出：get 和 push
 	fields := strings.Split(action, "_")
 	method := fields[len(fields)-1]
-	path = strings.Replace(path, "_"+method, "", 1)
+
+	// 模式匹配上，则将 path 中 action 的最后一段给去掉
+	// 即：将类似 "/admin/user_get" 变为 "/admin/user"
+	if InArray(method, []string{"post", "get", "put", "patch", "head", "options", "delete", "any"}) {
+		path = "/" + class + "/" + action[:len(action)-len(method)-1]
+		// TrimRight 耗时 是上面这种字符串截取耗时的大约 60 倍，能用上面这种就用这种
+		//path = "/" + class + "/" + strings.TrimRight(action, "_"+method)
+	} else {
+		// 如果模式没有匹配上，则默认模式为：POST，并且 url 保持原状
+		method = "post"
+	}
+
 	switch method {
 	case "get":
 		r.GET(path, handler)
@@ -59,29 +68,4 @@ func baseBind(r *gin.RouterGroup, class string, action string, handler gin.Handl
 	default:
 		r.POST(path, handler)
 	}
-}
-
-// HandlerFunc 将控制器方法转为 gin.HandlerFunc 方法
-func HandlerFunc(v Route) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		arguments := make([]reflect.Value, 1)
-		arguments[0] = reflect.ValueOf(c)
-		v.Method.Call(arguments)
-	}
-}
-
-// CamelCaseToUnderscore 驼峰单词转下划线单词
-func CamelCaseToUnderscore(s string) string {
-	var output []rune
-	for i, r := range s {
-		if i == 0 {
-			output = append(output, unicode.ToLower(r))
-			continue
-		}
-		if unicode.IsUpper(r) {
-			output = append(output, '_')
-		}
-		output = append(output, unicode.ToLower(r))
-	}
-	return string(output)
 }

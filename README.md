@@ -6,7 +6,9 @@
 
 # 2 特别提示
 ### 2.1 从 v1.0.0 开始，支持所有的 RESTful API 请求类型
+#### 2.1.1 支持的类型分别是：post/get/put/patch/head/options/delete/any，其中 any 将绑定为为任意请求方式
 ### 2.2 从 v1.0.0 开始，请求 URI 自动为小写下划线方式
+#### 2.2.1 例如：ListGet => list_get, InfoPush => info_push
 
 # 3 简要说明
 ### 3.1 假定控制器目录为 controller，具体可参见：示例代码[demo1](/examples/demo1)
