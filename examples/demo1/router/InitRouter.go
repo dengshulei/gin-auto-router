@@ -10,8 +10,8 @@ func InitRouter() *gin.Engine {
 	//初始化路由
 	r := gin.Default()
 
-	//绑定基本路由，访问路径：/article/list
-	ginAutoRouter.Bind(r)
+	//自动绑定 驼峰命名法 路由
+	ginAutoRouter.Bind(r, "camelCase")
 
 	return r
 }

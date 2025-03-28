@@ -15,8 +15,8 @@ func InitRouter() *gin.Engine {
 	//加载并使用登录验证中间件
 	v1Route.Use(jwt.JWT())
 	{
-		//绑定Group路由，访问路径：/v1/article/list
-		ginAutoRouter.BindGroup(v1Route)
+		//绑定Group路由 (帕斯卡命名法)
+		ginAutoRouter.BindGroup(v1Route, "PascalCase")
 	}
 
 	return r
