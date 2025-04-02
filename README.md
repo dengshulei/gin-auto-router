@@ -5,8 +5,8 @@ gin-auto-router 是 Golang 语言 Gin 框架的自动路由组件。实现了 Gi
 本项目支持所有的 RESTful API 请求类型，包括："post", "get", "put", "patch", "head", "options", "delete" 和 "any"等。本项目支持常见的命名方法(nomenclature),比如: snake_case (下划线命名法，默认)、camelCase(驼峰命名法)和 PascalCase (帕斯卡命名法)。
 
 ## 🎁 升级记录
-### 🍺 v2.0.0
-在保持与 v1 兼容的基础上，重写了路由注册与绑定的方法。新增支持多种常见的命名方法( nomenclature ),比如: snake_case (下划线命名法，默认)、camelCase(驼峰命名法)和 PascalCase (帕斯卡命名法)。
+### 🍺 v1.2.0.
+在保持与 v1.1.0 兼容的基础上，重写了路由注册与绑定的方法。新增支持多种常见的命名方法( nomenclature ),比如: snake_case (下划线命名法，默认)、camelCase(驼峰命名法)和 PascalCase (帕斯卡命名法)。
 ### 🍺 v1.1.0
 从 v1.0.0 开始，支持所有的 RESTful API 请求类型，支持的类型分别是：post/get/put/patch/head/options/delete/any，其中 any 将绑定为为任意请求方式。
 ### 🍺 v1.1.0
