@@ -2,104 +2,153 @@ package gin_auto_router
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/url"
 	"reflect"
+	"slices"
 	"strings"
 )
 
-// Route 控制器的一个方法将存储为一个 Route，具体数据格式为：
-// ClassName:类名（控制器的对象名称，如：Admin）
-// ActionName:方法名（控制器下的具体方法名称，如：ListGet）
-// ActionObj:方法对象（方法的原始对象，不是方法名称）
-// Args:方法的参数类型（方法包含的所有参数的类型）
-// Ext:扩展参数
+// Route represents route registration and dispatch information
 type Route struct {
-	ClassName  string
-	ActionName string
-	ActionObj  reflect.Value
-	Args       []reflect.Type
-	Ext        ExtModel
+	ControllerName string        // Controller struct name (e.g., Article, extracted from *controller.Article)
+	ActionName     string        // Controller method name (e.g., ListGet)
+	Action         reflect.Value // Controller method reflect value (can be called directly)
+	Ext            ExtModel      // Route extension configuration parameters
 }
 
-// ExtModel Route 对象的扩展数据
-// Nom:命名方法(nomenclature),支持: snake_case (下划线命名法，默认)、camelCase(驼峰命名法)和 PascalCase (帕斯卡命名法)
-// HttpMethod:Http 请求方法，已支持：{"post", "get", "put", "patch", "head", "options", "delete", "any"}
-// UrlClass: Url 路径 Path 部分，对应的是 controller 对象名称，如：/pathToClass/*****
-// UrlAction:Url 路径 Action 部分，对应的是方法名称，如：/****/actionName
+// ExtModel is the route extension configuration model
+// NamingConvention: naming method, supported: kebab-case (default), snake_case, camelCase, PascalCase
+// HTTPMethod: HTTP request method, supported: {"post", "get", "put", "patch", "head", "options", "delete", "any"}
+// URLClass: URL path class part, corresponds to controller name, e.g., /path-to-class/*****
+// URLAction: URL path action part, corresponds to method name, e.g., /****/action-name
 type ExtModel struct {
-	Nom        string
-	HttpMethod string
-	UrlClass   string
-	UrlAction  string
+	NamingConvention string // URL naming convention (e.g., kebab-case, default)
+	HTTPMethod       string // HTTP request method (support: get/post/put/delete/any, etc.)
+	URLClass         string // URL path class (corresponds to controller name), e.g., article
+	URLAction        string // URL path action (corresponds to method name), e.g., list
 }
 
-// Routes 存储所有方法的切片
+// Routes stores all registered methods
 var Routes = make([]Route, 0)
 
-// Bind 执行路由绑定
-func (r *Route) Bind(g *gin.RouterGroup) {
-	r.Init()
-	path := r.GetPath()
-	handler := HandlerFunc(r.ActionObj)
-	switch r.Ext.HttpMethod {
+// Bind performs route binding
+func (r *Route) Bind(routerGroup *gin.RouterGroup) {
+	r.ParseMetadata()
+	switch r.Ext.HTTPMethod {
 	case "get":
-		g.GET(path, handler)
+		routerGroup.GET(r.FullPath(), r.Handler())
 	case "put":
-		g.PUT(path, handler)
+		routerGroup.PUT(r.FullPath(), r.Handler())
 	case "patch":
-		g.PATCH(path, handler)
+		routerGroup.PATCH(r.FullPath(), r.Handler())
 	case "head":
-		g.HEAD(path, handler)
+		routerGroup.HEAD(r.FullPath(), r.Handler())
 	case "options":
-		g.OPTIONS(path, handler)
+		routerGroup.OPTIONS(r.FullPath(), r.Handler())
 	case "delete":
-		g.DELETE(path, handler)
+		routerGroup.DELETE(r.FullPath(), r.Handler())
 	case "any":
-		g.Any(path, handler)
+		routerGroup.Any(r.FullPath(), r.Handler())
 	// Any registers a route that matches all the HTTP methods.
 	// GET, POST, PUT, PATCH, HEAD, OPTIONS, DELETE, CONNECT, TRACE.
-	//case "post":    // The DEFAULT VALUE is "post".
+	// case "post":    // The DEFAULT VALUE is "post".
 	default:
-		g.POST(path, handler)
+		routerGroup.POST(r.FullPath(), r.Handler())
 	}
 }
 
-// Init 初始化参数
-func (r *Route) Init() {
-	// 字符串转为下划线分割，如：ListGet => list_get, infoPush => info_push
-	urlAction := StringToSnakeCase(r.ActionName)
+// ParseMetadata parses metadata
+func (r *Route) ParseMetadata() {
+	// Default naming rule is: kebab-case
+	urlAction := ToKebabCase(r.ActionName)
 
-	// 分割 urlAction 字符串，取出最后一段，用来匹配请求类型，形如：list_get , info_push，则取出：get 和 push
-	fields := strings.Split(urlAction, "_")
+	// Split urlAction string and take the last segment to match request type
+	// e.g., for list_get, info_push, extract: get and push
+	fields := strings.Split(urlAction, "-")
 	httpMethod := fields[len(fields)-1]
 
-	// 模式匹配上，则将 urlAction 的最后一段给去掉，即：将类似 "user_get" 变为 "user"
-	if InArray(httpMethod, []string{"post", "get", "put", "patch", "head", "options", "delete", "any"}) {
+	if slices.Contains([]string{"post", "get", "put", "patch", "head", "options", "delete", "any"}, httpMethod) {
+		// Pattern matched, remove the last segment from urlAction
+		// e.g., "user_get" becomes "user"
 		urlAction = urlAction[:len(urlAction)-len(httpMethod)-1]
-		// TrimRight 耗时 是上面这种字符串截取耗时的大约 60 倍，能用上面这种就用这种
-		//urlAction = strings.TrimRight(urlAction, "_"+httpMethod)
 	} else {
-		// 如果模式没有匹配上，则默认模式为：POST，并且 urlAction 保持原状
+		// Pattern not matched, default method is: POST, urlAction remains unchanged
 		httpMethod = "post"
 	}
-	r.Ext.HttpMethod = httpMethod
-	r.Ext.UrlClass = r.GetStrByNom(StringToSnakeCase(r.ClassName))
-	r.Ext.UrlAction = r.GetStrByNom(urlAction)
+	r.Ext.HTTPMethod = httpMethod
+	r.Ext.URLClass = r.ConvertByNamingConvention(ToKebabCase(r.ControllerName))
+	r.Ext.URLAction = r.ConvertByNamingConvention(urlAction)
 }
 
-// GetPath 获取要绑定的路径
-func (r *Route) GetPath() string {
-	return "/" + r.Ext.UrlClass + "/" + r.Ext.UrlAction
+// FullPath returns the path to be bound
+//
+// Combines r.Ext.URLClass and r.Ext.URLAction to form the complete path, e.g., /path-to-class/action-name.
+//
+// Parameters:
+//
+//	none
+//
+// Returns:
+//
+//	string: Complete path string
+func (r *Route) FullPath() (path string) {
+	// Join path, e.g., /path-to-class/action-name
+	path, _ = url.JoinPath("/", r.Ext.URLClass, r.Ext.URLAction)
+	return
 }
 
-// GetStrByNom 根据 Nom:命名方法(nomenclature) 获取字符串
-// Nom 已支持：snake_case (下划线命名法，默认)、camelCase(驼峰命名法)和 PascalCase (帕斯卡命名法)
-func (r *Route) GetStrByNom(str string) string {
-	switch r.Ext.Nom {
+// Handler converts the controller method to gin.HandlerFunc.
+// This passes gin.Context as a parameter to the method, limited to one parameter: gin.Context.
+// Method definition example: func (api *Article) ListGet(c *gin.Context)
+//
+// Converts the Action method in the Route struct to gin.HandlerFunc for use in routing.
+//
+// Parameters:
+//
+//	none
+//
+// Returns:
+//
+//	gin.HandlerFunc: A function type that can be used for Gin route handling
+func (r *Route) Handler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		arguments := make([]reflect.Value, 1)
+		arguments[0] = reflect.ValueOf(c)
+		r.Action.Call(arguments)
+	}
+}
+
+// ConvertByNamingConvention converts string to the specified naming format
+//
+// Converts a kebab-case formatted string to the specified format based on r.Ext.NamingConvention.
+//
+// Supported naming conventions:
+//   - "kebab-case": kebab-case (default, no conversion)
+//   - "snake_case": snake_case (e.g., article-list -> article_list)
+//   - "camelCase": camelCase (e.g., article-list -> articleList)
+//   - "PascalCase": PascalCase (e.g., article-list -> ArticleList)
+//
+// Parameters:
+//
+//	str: Input kebab-case formatted string
+//
+// Returns:
+//
+//	String converted according to the naming convention
+func (r *Route) ConvertByNamingConvention(str string) string {
+	// Return empty string directly to avoid panic
+	if str == "" {
+		return ""
+	}
+	switch r.Ext.NamingConvention {
 	case "camelCase":
-		return SnakeCaseToCamelCase(str)
+		return KebabCaseToCamelCase(str)
 	case "PascalCase":
-		return SnakeCaseToPascalCase(str)
-	//case "snake_case":
+		return KebabCaseToPascalCase(str)
+	case "snake_case":
+		return KebabCaseToSnakeCase(str)
+	case "kebab-case":
+		fallthrough //
 	default:
 		return str
 	}

@@ -1,120 +1,142 @@
 package gin_auto_router
 
 import (
-	"github.com/gin-gonic/gin"
 	"reflect"
-	"sort"
 	"strings"
 	"unicode"
 )
 
-// StringToSnakeCase  字符串转为 snake_case (下划线命名法)
-// 如：ListGet => list_get;  infoPush => info_push;  code => code;  Setting => setting
-func StringToSnakeCase(s string) string {
-	var output []rune
-	for i, r := range s {
+// ToKebabCase converts a string to kebab-case format
+// Examples:
+//
+//	ListGet   → list-get
+//	infoPush  → info-push
+//	User_Info → user-info
+//	UserAPI   → user-api
+//	HTTPModel → http-model
+func ToKebabCase(s string) string {
+	if s == "" {
+		return ""
+	}
+
+	var buf strings.Builder
+	runes := []rune(s)
+	n := len(runes)
+
+	for i := 0; i < n; i++ {
+		c := runes[i]
+
+		// 1. Skip leading non-alphabetic characters (underscore, dash, space)
 		if i == 0 {
-			// 首字母小写
-			output = append(output, unicode.ToLower(r))
+			if c == '_' || c == '-' || c == ' ' {
+				continue
+			}
+			buf.WriteRune(unicode.ToLower(c))
 			continue
 		}
-		if r == 95 {
-			// 跳过下划线"_"
+
+		// 2. Skip useless symbols
+		if c == '_' || c == '-' || c == ' ' {
+			// Avoid consecutive --
+			if buf.Len() > 0 && buf.String()[buf.Len()-1] != '-' {
+				buf.WriteRune('-')
+			}
 			continue
 		}
-		if unicode.IsUpper(r) {
-			// 如果是大写字母，就加一条下划线
-			output = append(output, '_')
+
+		// 3. Handle uppercase letters (core: avoid consecutive dashes)
+		if unicode.IsUpper(c) {
+			last := runes[i-1]
+			if !unicode.IsUpper(last) && last != '-' && last != '_' {
+				buf.WriteRune('-')
+			}
+			buf.WriteRune(unicode.ToLower(c))
+			continue
 		}
-		// 字符转小写
-		output = append(output, unicode.ToLower(r))
+
+		// 4. Normal characters
+		buf.WriteRune(c)
 	}
-	return string(output)
+
+	return strings.Trim(buf.String(), "-")
 }
 
-// SnakeCaseToCamelCase snake_case (下划线命名法) 转 camelCase(驼峰命名法)
-// 如：list_get => listGet;  info_push => infoPush;  code => code;  setting => setting
-func SnakeCaseToCamelCase(s string) string {
-	return SnakeCaseToOther(s, false)
+// KebabCaseToSnakeCase converts kebab-case to snake_case
+// Examples: list-get => list_get; info-push => info_push; code => code; setting => setting
+func KebabCaseToSnakeCase(s string) string {
+	return strings.ReplaceAll(s, "-", "_")
 }
 
-// SnakeCaseToPascalCase snake_case (下划线命名法) 转 PascalCase (帕斯卡命名法)
-// 如：list_get => ListGet;  info_push => InfoPush;  code => Code;  setting => Setting
-func SnakeCaseToPascalCase(s string) string {
-	return SnakeCaseToOther(s, true)
+// KebabCaseToCamelCase converts kebab-case to camelCase
+// Examples: list-get => listGet; info-push => infoPush; code => code; setting => setting
+func KebabCaseToCamelCase(s string) string {
+	return KebabCaseToOther(s, false)
 }
 
-// SnakeCaseToOther snake_case (下划线命名法) 转 其他命名法
-// s: 需要转变的字符串
-// lastFlag: 值为 true ，首字母大写(PascalCase帕斯卡命名法)；值为 false 首字母小写（camelCase驼峰命名法）
-func SnakeCaseToOther(s string, lastFlag bool) string {
+// KebabCaseToPascalCase converts kebab-case to PascalCase
+// Examples: list-get => ListGet; info-push => InfoPush; code => Code; setting => Setting
+func KebabCaseToPascalCase(s string) string {
+	return KebabCaseToOther(s, true)
+}
+
+// KebabCaseToOther converts kebab-case to camelCase or PascalCase
+// s: string to convert
+// firstUpper: true for PascalCase, false for camelCase
+func KebabCaseToOther(s string, firstUpper bool) string {
 	var output []rune
+
 	for _, r := range s {
-		if r == 95 {
-			// 下划线"_"，标记并跳过
-			lastFlag = true
+		// When encountering dash, mark next character to be uppercase, skip current
+		if r == '-' {
+			firstUpper = true
 			continue
 		}
-		if lastFlag == true {
-			// 上一个字符是下划线，则本字符转大写
+
+		// If needs uppercase, convert and reset flag
+		if firstUpper {
 			output = append(output, unicode.ToUpper(r))
-			lastFlag = false
-			continue
+			firstUpper = false
+		} else {
+			output = append(output, r)
 		}
-		output = append(output, r)
 	}
+
 	return string(output)
 }
 
-// InArray 判断此字符串是否存在于给定的数组中
-func InArray(str string, strArray []string) bool {
-	// 给数组排序
-	sort.Strings(strArray)
-	// 二分法查找，找到以后返回索引
-	index := sort.SearchStrings(strArray, str)
-	if index < len(strArray) && strArray[index] == str {
-		return true
-	}
-	return false
-}
-
-// GetNom 获取命名方法(nomenclature),支持: snake_case (下划线命名法，默认)、camelCase(驼峰命名法)和 PascalCase (帕斯卡命名法)
-func GetNom(args ...string) (nom string) {
-	nom = GetArg(0, args...)
+// NormalizeNamingConvention gets the naming convention, supports: kebab-case (default), snake_case, camelCase, PascalCase
+func NormalizeNamingConvention(args ...string) (nom string) {
+	nom = GetOptionalArg(0, args...)
 	switch nom {
+	case "kebab-case":
+	case "snake_case":
 	case "camelCase":
 	case "PascalCase":
 	default:
-		nom = "snake_case"
+		nom = "kebab-case"
 	}
 	return nom
 }
 
-// GetArg 在一个批量 args 里面获取指定的 arg
-// i : 要获取的 arg 所在的索引，从 0 开始计算
-func GetArg(i int, args ...string) (arg string) {
+// GetOptionalArg gets the specified arg from a batch of args
+// i: the index of the arg to get, starting from 0
+func GetOptionalArg(i int, args ...string) (arg string) {
 	if len(args) > i {
 		arg = args[i]
 	}
 	return
 }
 
-// GetClass 获取控制器对象的名称（类名）
-func GetClass(controller interface{}) (class string) {
-	// 取得控制器的类型（reflect.Type），结果类似“*controller.Article”
-	class = reflect.TypeOf(controller).String()
-	if strings.Contains(class, ".") {
-		// 此时结果类似“Article”
-		class = class[strings.Index(class, ".")+1:]
+// GetControllerName gets the controller struct name
+// Example:
+//
+//	*controller.Article => Article
+func GetControllerName(controller interface{}) (ControllerName string) {
+	// Get the controller type (reflect.Type), result similar to "*controller.Article"
+	ControllerName = reflect.TypeOf(controller).String()
+	if strings.Contains(ControllerName, ".") {
+		// At this point the result is similar to "Article"
+		ControllerName = ControllerName[strings.Index(ControllerName, ".")+1:]
 	}
 	return
-}
-
-// HandlerFunc 将控制器方法转为 gin.HandlerFunc 方法
-func HandlerFunc(v reflect.Value) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		arguments := make([]reflect.Value, 1)
-		arguments[0] = reflect.ValueOf(c)
-		v.Call(arguments)
-	}
 }

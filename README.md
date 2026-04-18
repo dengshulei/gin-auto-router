@@ -1,87 +1,114 @@
-##  📚 简介
-gin-auto-router 是 Golang 语言 Gin 框架的自动路由组件。实现了 Gin 路由的自动注册，不用手动添加，避免了手动添加路由的一系列问题的出现。 将开发人员的精力放到具体业务逻辑开发上来。 同时降低了新手的入门 Golang 下 Gin 框架开发的难度。
+- [English](README.md)
+- [中文](README_cn.md)
 
-### 🧬 项目特点
-本项目支持所有的 RESTful API 请求类型，包括："post", "get", "put", "patch", "head", "options", "delete" 和 "any"等。本项目支持常见的命名方法(nomenclature),比如: snake_case (下划线命名法，默认)、camelCase(驼峰命名法)和 PascalCase (帕斯卡命名法)。
+## 📚 Introduction
+gin-auto-router is an automatic routing component for the Golang Gin framework. It implements automatic registration of Gin routes, eliminating the need for manual addition and avoiding the complexities and omissions that come with manual route configuration. This allows developers to focus on business logic development while reducing the difficulty for beginners to get started with the Gin framework.
 
-## 🎁 升级记录
-### 🍺 v1.2.0.
-在保持与 v1.1.0 兼容的基础上，重写了路由注册与绑定的方法。新增支持多种常见的命名方法( nomenclature ),比如: snake_case (下划线命名法，默认)、camelCase(驼峰命名法)和 PascalCase (帕斯卡命名法)。
+### 🧬 Project Features
+This project supports all RESTful API request types, including: "post", "get", "put", "patch", "head", "options", "delete" and "any". It also supports multiple common naming conventions, such as: kebab-case (default), snake_case, camelCase, and PascalCase.
+
+## 🎁 Changelog
+
+### 🍺 v1.3.0
+- **Important Updates:**
+  1. Default naming convention changed to kebab-case
+  2. Go language version upgraded to 1.26
+  3. Gin framework version upgraded to v1.12.0
+  4. Refactored route registration and binding methods
+- **Compatibility Notes:**
+  - Backward compatible, versions before v1.2.0 can continue to be used
+  - If you were using the default binding method before, after upgrading to v1.3.0, you need to manually specify the naming convention:
+    - Change `ginAutoRouter.Bind(engine)` to `ginAutoRouter.Bind(engine, "snake_case")`
+    - Change `ginAutoRouter.BindGroup(routerGroup)` to `ginAutoRouter.BindGroup(routerGroup, "snake_case")`
+  - If you were using a non-default binding method, you can continue using it after upgrading
+  - No other code changes needed
+
+### 🍺 v1.2.0
+Rewrote route registration and binding methods while maintaining compatibility with v1.1.0. Added support for multiple naming conventions: snake_case (default), camelCase, and PascalCase.
+
 ### 🍺 v1.1.0
-从 v1.0.0 开始，支持所有的 RESTful API 请求类型，支持的类型分别是：post/get/put/patch/head/options/delete/any，其中 any 将绑定为为任意请求方式。
-### 🍺 v1.1.0
-从 v1.0.0 开始，请求 URI 自动为小写下划线方式，即snake_case (下划线命名法) 。例如：ListGet => list_get, InfoPush => info_push
+- Fixed a bug in route binding to ensure routes are correctly bound
+
+### 🍺 v1.0.0
+- Supports all RESTful API request types: post, get, put, patch, head, options, delete, any, where "any" binds to any request method
+- Request URIs are automatically converted to lowercase snake_case format, e.g., ListGet → list_get, InfoPush → info_push
+
 ### 🍺 v0.2.0
-优化了注册和绑定的逻
+Optimized registration and binding logic
 
-## 📝 简单说明
-### 示例代码 [demo1(点击直达)](/examples/demo1)
-- 假定控制器文件为 Article.go
-- 方法名为 Test 或 TestPost：前端使用 post 方式请求 “/article/test”
-- 方法名为 TestGet：前端使用 get 方式请求 “/article/test”
-- 方法名为 TestPut：前端使用 put 方式请求 “/article/test”
-- 方法名为 TestPatch：前端使用 patch 方式请求 “/article/test”
-- 方法名为 TestHead：前端使用 head 方式请求 “/article/test”
-- 方法名为 TestOptions：前端使用 options 方式请求 “/article/test”
-- 方法名为 TestDelete：前端使用 delete 方式请求 “/article/test”
-- 方法名为 TestAny：前端使用 任意 方式请求 “/article/test”
+## 📝 Quick Start
 
-## 🛠️ 使用方法
-### 🍐 使用方法 1
-利用gin基本的路由对象，自动生成访问路由。即在路由绑定的普通模式下自动绑定油路。
-- 示例代码 [demo1 (点击直达)](/examples/demo1)
+### Example Code [demo1 (Click to View)](examples/demo1)
+- Assume the controller file is Article.go
+- Method named Test or TestPost: Frontend uses POST to request "/article/test"
+- Method named TestGet: Frontend uses GET to request "/article/test"
+- Method named TestPut: Frontend uses PUT to request "/article/test"
+- Method named TestPatch: Frontend uses PATCH to request "/article/test"
+- Method named TestHead: Frontend uses HEAD to request "/article/test"
+- Method named TestOptions: Frontend uses OPTIONS to request "/article/test"
+- Method named TestDelete: Frontend uses DELETE to request "/article/test"
+- Method named TestAny: Frontend uses any method to request "/article/test"
 
-主要代码如下：
+## 🛠️ Usage
 
-- 入口主文件
+### 🍐 Method 1
+Use Gin's basic routing object to automatically generate access routes. Routes are automatically bound in the normal route binding mode.
+- Example Code [demo1 (Click to View)](examples/demo1)
+
+Main code is as follows:
+
+- Entry main file
 ```sh
 $ cat main.go
 ```
 
 ```go
 package main
+
 import "demo1/router"
 
 func main() {
-	//加载路由
+	// Load routes
 	r := router.InitRouter()
 	_ = r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 ```
 
-- 自动生成路由的主文件
+- Route initialization file
 ```sh
-# router下的文件InitRouter.go
-$ cat InitRouter.go
+# File in router directory init_router.go
+$ cat router/init_router.go
 ```
 
 ```go
 package router
+
 import (
-	_ "demo1/app/controller"   //一定要导入这个Controller包，用来注册需要访问的方法
-	ginAutoRouter "github.com/dengshulei/gin-auto-router"
+	_ "demo1/app/controller" // Must import controller package to register methods to be accessed
+	ginAutoRouter "gitee.com/dengshulei/gin-auto-router"
 	"github.com/gin-gonic/gin"
 )
-func InitRouter() *gin.Engine  {
-	//初始化路由
+
+func InitRouter() *gin.Engine {
+	// Initialize routes
 	r := gin.Default()
-	//自动绑定 驼峰命名法 路由
+	// Auto-bind camelCase routes
 	ginAutoRouter.Bind(r, "camelCase")
 	return r
 }
 ```
 
-- 控制器文件
+- Controller file
 ```sh
-# controller下的文件Article.go
-$ cat Article.go
+# File in controller directory article.go
+$ cat app/controller/article.go
 ```
 
 ```go
 package controller
 
 import (
-	ginAutoRouter "github.com/dengshulei/gin-auto-router"
+	ginAutoRouter "gitee.com/dengshulei/gin-auto-router"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -90,12 +117,12 @@ func init() {
 	ginAutoRouter.Register(&Article{})
 }
 
-type Article struct {}
+type Article struct{}
 
 func (api *Article) ListGet(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 1,
-		"msg": "ok",
+		"msg":  "ok",
 		"data": "Article:List",
 	})
 }
@@ -103,7 +130,7 @@ func (api *Article) ListGet(c *gin.Context) {
 func (api *Article) InfoGet(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 1,
-		"msg": "ok",
+		"msg":  "ok",
 		"data": "Article:InfoGet",
 	})
 }
@@ -111,7 +138,7 @@ func (api *Article) InfoGet(c *gin.Context) {
 func (api *Article) InfoPost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 1,
-		"msg": "ok",
+		"msg":  "ok",
 		"data": "Article:InfoPost",
 	})
 }
@@ -119,55 +146,57 @@ func (api *Article) InfoPost(c *gin.Context) {
 func (api *Article) InfoDelete(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 1,
-		"msg": "ok",
+		"msg":  "ok",
 		"data": "Article:InfoDelete",
 	})
 }
+
 func (api *Article) InfoPut(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 1,
-		"msg": "ok",
+		"msg":  "ok",
 		"data": "Article:InfoPut",
 	})
 }
 ```
 
-### 🍊 使用方法 2
-路由分组模式，即：利用 Gin 的分组路由 Group 实现路由分组，并对指定的分组使用登录验证等中间件。
-- 示例代码 [demo2(点击直达)](/examples/demo2)
+### 🍊 Method 2
+Route grouping mode: Use Gin's Group feature to implement route grouping, and apply middleware such as login verification to specific groups.
+- Example Code [demo2 (Click to View)](examples/demo2)
 
-实现的效果是：登录接口“/auth”可以直接访问，但是只有登录成功的才可以访问“/v1/article/list”。
-- 大多的文件都是与方法一类似，只有路由相关文件有细微的区别，详细的情况请查看：示例代码 [demo2(点击直达)](/examples/demo2) 
+Implementation effect: Login endpoint "/auth" can be accessed directly, but only logged-in users can access "/v1/article/list".
+Most files are similar to Method 1, only route-related files have slight differences. For details, please refer to: Example Code [demo2 (Click to View)](examples/demo2)
 
-路由相关文件
+Route-related file:
 ```sh
-$ cat InitRouter.go
+# File in router directory init_router.go
+$ cat router/init_router.go
 ```
 
 ```go
 package router
 
 import (
-	_ "demo2/app/controller/v1" //一定要导入这个Controller包，用来注册需要访问的方法
+	_ "demo2/app/controller/v1" // Must import controller package to register methods to be accessed
 	"demo2/router/middleware/jwt"
-	ginAutoRouter "github.com/dengshulei/gin-auto-router"
+	ginAutoRouter "gitee.com/dengshulei/gin-auto-router"
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter() *gin.Engine  {
-	//初始化路由
+func InitRouter() *gin.Engine {
+	// Initialize routes
 	r := gin.Default()
-	//开启v1分组
+	// Enable v1 group
 	v1Route := r.Group("/v1")
-	//加载并使用登录验证中间件
+	// Load and use login verification middleware
 	v1Route.Use(jwt.JWT())
 	{
-		//绑定Group路由 (帕斯卡命名法)
+		// Bind Group routes (PascalCase)
 		ginAutoRouter.BindGroup(v1Route, "PascalCase")
 	}
 
 	return r
 }
-
 ```
-- 除了上面的绑定路由的代码，其它代码都与“使用方法 1”基本一致。
+
+- Except for the route binding code above, other code is basically the same as Method 1.

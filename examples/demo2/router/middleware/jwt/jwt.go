@@ -10,7 +10,7 @@ func JWT() gin.HandlerFunc {
 		var data = make(map[string]interface{})
 		var code = 200
 
-		//需要自己实现一些验证逻辑
+		// You need to implement some verification logic yourself
 		adminId := c.PostForm("admin_id")
 		if adminId == "" {
 			code = 306
@@ -18,9 +18,9 @@ func JWT() gin.HandlerFunc {
 
 		if code != 200 {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"code" : code,
-				"msg"  : "登录信息验证失败，请重新登录",
-				"data" : data,
+				"code": code,
+				"msg":  "Login verification failed, please login again",
+				"data": data,
 			})
 			c.Abort()
 			return

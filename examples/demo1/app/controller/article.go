@@ -1,7 +1,7 @@
 package controller
 
 import (
-	ginAutoRouter "github.com/dengshulei/gin-auto-router"
+	ginAutoRouter "gitee.com/dengshulei/gin-auto-router"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -11,6 +11,14 @@ func init() {
 }
 
 type Article struct{}
+
+func (api *Article) MenuListGet(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"code": 1,
+		"msg":  "ok",
+		"data": "Article:MenuList",
+	})
+}
 
 func (api *Article) ListGet(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
